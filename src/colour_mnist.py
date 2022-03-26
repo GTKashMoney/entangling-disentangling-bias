@@ -202,7 +202,7 @@ def get_biased_mnist_dataloader(root, batch_size, data_label_correlation,
 
     valid_dataset = ColourBiasedMNIST(
         root, train=train, transform=transform,
-        download=True, data_label_correlation=0.1,
+        download=True, data_label_correlation=data_label_correlation,
         n_confusing_labels=n_confusing_labels
     )
 
