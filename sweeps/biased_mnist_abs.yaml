@@ -1,8 +1,8 @@
-program: EnD_rebias_mnist_sweep.py
+program: src/EnD_rebias_mnist_sweep.py
 name: "Biased MNIST - rho 0.997 - EnD"
 command:
     - ${env}
-    - python3
+    - python
     - ${program}
     - ${args}
 method: bayes
