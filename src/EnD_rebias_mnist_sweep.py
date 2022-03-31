@@ -27,7 +27,7 @@ def num_correct(outputs,labels):
     correct = preds.eq(labels).sum()
     return correct
 
-def train(model, dataloader, criterion, weights, optimizer, scheduler):
+def train(model, dataloader, criterion, weights, optimizer, scheduler, enable_EnD=True):
     num_samples = 0
     tot_correct = 0
     tot_loss = 0
@@ -42,7 +42,9 @@ def train(model, dataloader, criterion, weights, optimizer, scheduler):
         with torch.enable_grad():
             outputs = model(data)
         bce, abs = criterion(outputs, labels, color_labels, weights)
-        loss = bce+abs
+        loss = bce
+        if enable_EnD:
+            loss += abs
         loss.backward()
         optimizer.step()
 
@@ -99,7 +101,8 @@ def main(config):
         f'{os.path.expanduser("~")}/data',
         config.batch_size,
         config.rho,
-        train=True
+        train=True,
+        unbiased_val=True
     )
 
     biased_test_loader = colour_mnist.get_biased_mnist_dataloader(
@@ -137,7 +140,7 @@ def main(config):
     best = defaultdict(float)
 
     for i in range(config.epochs):
-        train_acc, train_loss, train_bce, train_abs = train(model, train_loader, ce_abs, None, optimizer, scheduler=None)
+        train_acc, train_loss, train_bce, train_abs = train(model, train_loader, ce_abs, None, optimizer, scheduler=None, enable_EnD=False)
         scheduler.step()
 
         valid_acc, valid_loss = test(model, valid_loader, ce, None)

@@ -177,7 +177,8 @@ class ColourBiasedMNIST(BiasedMNIST):
 
 # Added validation loader
 def get_biased_mnist_dataloader(root, batch_size, data_label_correlation,
-                                n_confusing_labels=9, train=True, num_workers=8, seed=42):
+                                n_confusing_labels=9, train=True, num_workers=8,
+                                seed=42, unbiased_val=True):
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
@@ -200,9 +201,10 @@ def get_biased_mnist_dataloader(root, batch_size, data_label_correlation,
         n_confusing_labels=n_confusing_labels
     )
 
+    val_correlation = 0.1 if unbiased_val else data_label_correlation
     valid_dataset = ColourBiasedMNIST(
         root, train=train, transform=transform,
-        download=True, data_label_correlation=data_label_correlation,
+        download=True, data_label_correlation=val_correlation,
         n_confusing_labels=n_confusing_labels
     )
 
