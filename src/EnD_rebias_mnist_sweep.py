@@ -118,12 +118,15 @@ def main(config):
         0.1,
         train=False
     )
+    os.makedirs("local_run", exist_ok=True)
 
     print('Training debiased model')
     print('Config:', config)
 
     model = models.simple_convnet()
     model = model.to(device)
+    if config.load != "":
+        model.load_state_dict(torch.load(config.load))
 
     optimizer = torch.optim.Adam(model.parameters(), lr=config.lr, weight_decay=config.weight_decay)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1, verbose=True)
@@ -178,6 +181,8 @@ def main(config):
             }
             wandb.log(metrics)
             torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict(), 'config': config}, os.path.join(wandb.run.dir, 'model.pt'))
+        else:
+            torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict(), 'config': config}, os.path.join('local_run', config.save))
 
 if __name__ == '__main__':
     if not config.local:

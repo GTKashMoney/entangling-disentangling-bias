@@ -11,6 +11,8 @@ parser.add_argument('--weight_decay', default=1e-4, type=float, help='weight dec
 parser.add_argument('--batch_size', default=256, type=int, help='batch size')
 parser.add_argument('--epochs', type=int, default=80)
 parser.add_argument('--local', dest='local', action='store_true', help='disable wandb')
+parser.add_argument('--load', default='', type=str)
+parser.add_argument('--save', default='', type=str)
 
 ### REBIAS MNIST
 parser.add_argument('--rho', type=float, default=0.997, help='rho for biased mnist (.999, .997, .995, .990)')
