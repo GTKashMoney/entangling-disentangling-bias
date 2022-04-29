@@ -102,7 +102,7 @@ def main(config):
         config.batch_size,
         config.rho,
         train=True,
-        unbiased_val=True
+        unbiased_val=config.unbias_val
     )
 
     biased_test_loader = colour_mnist.get_biased_mnist_dataloader(
@@ -118,6 +118,8 @@ def main(config):
         0.1,
         train=False
     )
+    if config.save == '':
+        config.save = 'model.pt'
     os.makedirs("local_run", exist_ok=True)
 
     print('Training debiased model')
@@ -126,7 +128,10 @@ def main(config):
     model = models.simple_convnet()
     model = model.to(device)
     if config.load != "":
-        model.load_state_dict(torch.load(config.load))
+        if not config.local:
+            model.load_state_dict(torch.load(os.path.join(wandb.run.dir, config.load))["model"])
+        else:
+            model.load_state_dict(torch.load(os.path.join("local_run", config.load))["model"])
 
     optimizer = torch.optim.Adam(model.parameters(), lr=config.lr, weight_decay=config.weight_decay)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1, verbose=True)
@@ -143,7 +148,10 @@ def main(config):
     best = defaultdict(float)
 
     for i in range(config.epochs):
-        train_acc, train_loss, train_bce, train_abs = train(model, train_loader, ce_abs, None, optimizer, scheduler=None, enable_EnD=False)
+        train_acc, train_loss, train_bce, train_abs = train(
+            model, train_loader, ce_abs, None, optimizer, scheduler=None, 
+            enable_EnD=(not config.disable_end)
+        )
         scheduler.step()
 
         valid_acc, valid_loss = test(model, valid_loader, ce, None)
@@ -180,7 +188,7 @@ def main(config):
                 'best': best
             }
             wandb.log(metrics)
-            torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict(), 'config': config}, os.path.join(wandb.run.dir, 'model.pt'))
+            torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict(), 'config': config}, os.path.join(wandb.run.dir, config.save))
         else:
             torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict(), 'config': config}, os.path.join('local_run', config.save))
 
